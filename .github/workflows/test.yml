@@ -1,0 +1,27 @@
+name: Test Cortex Action
+
+on:
+  push:
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Run Cortex Action (dry-run)
+        id: cortex
+        uses: ./
+        with:
+          command: "install python3, nodejs, and postgresql"
+          dry-run: "true"
+          api-key: "${{ secrets.API_KEY }}"
+          llm_provider: "anthropic"
+
+      - name: Print outputs
+        run: |
+          echo "Status: ${{ steps.cortex.outputs.status }}"
+          echo "Log: ${{ steps.cortex.outputs.execution-log }}"
