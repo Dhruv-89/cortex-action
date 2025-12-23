@@ -1,0 +1,35 @@
+name: "Cortex Action"
+description: "Executes environment setup commands with dry-run support"
+author: "CortexLinux"
+
+inputs:
+  command:
+    description: "Command to execute"
+    required: true
+
+  dry-run:
+    description: "If true, command will not be executed"
+    required: false
+    default: "false"
+
+  api-key:
+    description: "API key for authentication"
+    required: true
+
+  llm_provider:
+    description: "LLM provider to use"
+    required: true
+    options:
+      - "anthropic"
+      - "openai"
+
+outputs:
+  execution-log:
+    description: "Execution or dry-run log"
+
+  status:
+    description: "success or failed"
+
+runs:
+  using: "node20"
+  main: "index.js"
