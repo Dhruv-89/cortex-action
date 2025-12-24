@@ -42,8 +42,8 @@ async function run() {
       // Make cortex available in PATH by creating a wrapper script
       await exec.exec("sudo", ["mkdir", "-p", "/usr/local/bin"]);
       
-      // Create wrapper script content
-      const scriptContent = "#!/bin/bash\nsource /tmp/cortex/venv/bin/activate\ncd /tmp/cortex\npython -m cortex.cli \"$@\"\n";
+      // Create wrapper script content - use the installed cortex binary
+      const scriptContent = "#!/bin/bash\nsource /tmp/cortex/venv/bin/activate\n/tmp/cortex/venv/bin/cortex \"$@\"\n";
       
       // Write the script using echo
       await exec.exec("sudo", ["sh", "-c", `echo '${scriptContent}' > /usr/local/bin/cortex`]);
@@ -56,44 +56,41 @@ async function run() {
 
     // Export API key as environment variable
     core.info(`Setting up ${apiKeyEnvName} environment variable...`);
-    await exec.exec(`export ${apiKeyEnvName}="${apiKey}"`);
+    await exec.exec("bash", ["-c", `export ${apiKeyEnvName}="${apiKey}"`]);
 
     let executionLog = "";
-    const fullCommand = `cortex ${command}${dryRun ? ' --dry-run' : ''}`;
+    const baseCommand = `cortex ${command}`;
+    const fullCommand = dryRun ? `${baseCommand} --dry-run` : `${baseCommand} --execute`;
 
-    if (dryRun) {
-      executionLog = `[DRY-RUN] ${fullCommand}`;
-      core.info(executionLog);
-    } else {
-      core.info(`Executing: ${fullCommand}`);
+    core.info(`Executing: ${fullCommand}`);
+    core.info(`Using ${apiKeyEnvName} for authentication`);
 
-      let stdout = "";
-      let stderr = "";
+    let stdout = "";
+    let stderr = "";
 
-      await exec.exec(fullCommand, [], {
-        env: {
-          ...process.env,
-          [apiKeyEnvName]: apiKey
+    await exec.exec(fullCommand, [], {
+      env: {
+        ...process.env,
+        [apiKeyEnvName]: apiKey
+      },
+      listeners: {
+        stdout: (data) => {
+          const output = data.toString();
+          stdout += output;
+          core.info(output.trim());
         },
-        listeners: {
-          stdout: (data) => {
-            const output = data.toString();
-            stdout += output;
-            core.info(output.trim());
-          },
-          stderr: (data) => {
-            const output = data.toString();
-            stderr += output;
-            core.error(output.trim());
-          }
+        stderr: (data) => {
+          const output = data.toString();
+          stderr += output;
+          core.error(output.trim());
         }
-      });
-
-      executionLog = stdout || stderr;
-      
-      if (executionLog) {
-        core.info(`Command completed. Full output: ${executionLog.trim()}`);
       }
+    });
+
+    executionLog = stdout || stderr;
+    
+    if (executionLog) {
+      core.info(`Command completed. Full output: ${executionLog.trim()}`);
     }
 
     core.setOutput("execution-log", executionLog);

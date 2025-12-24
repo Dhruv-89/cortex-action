@@ -16,7 +16,7 @@ jobs:
         id: cortex
         uses: ./
         with:
-          command: "install \"python3, nodejs, and postgresql\""
+          command: "install \"python3\""
           dry-run: "true"
           api-key: "${{ secrets.API_KEY }}"
           llm_provider: "anthropic"
@@ -25,7 +25,7 @@ jobs:
         id: cortex_exec
         uses: ./
         with:
-          command: "install \"python3, nodejs, and postgresql\""
+          command: "install \"python3\""
           api-key: "${{ secrets.API_KEY }}"
           llm_provider: "anthropic"
 
