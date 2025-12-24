@@ -15,7 +15,7 @@ async function run() {
     const apiKeyEnvName = llmProvider === "openai" ? "OPENAI_API_KEY" : "ANTHROPIC_API_KEY";
 
     let executionLog = "";
-    const fullCommand = `cortex ${command}`;
+    const fullCommand = `cortex ${command}${dryRun ? ' --dry-run' : ''}`;
 
     if (dryRun) {
       executionLog = `[DRY-RUN] ${fullCommand}`;
