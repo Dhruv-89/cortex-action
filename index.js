@@ -35,16 +35,18 @@ async function run() {
       // Create virtual environment and install
       core.info("Installing Cortex...");
       await exec.exec("python3 -m venv /tmp/cortex/venv");
-      await exec.exec("bash -c 'source /tmp/cortex/venv/bin/activate && cd /tmp/cortex && pip install -e .'");
+      
+      // Activate virtual environment and install Cortex
+      await exec.exec("/tmp/cortex/venv/bin/pip install -e /tmp/cortex");
       
       // Make cortex available in PATH by creating a wrapper script
       await exec.exec("sudo mkdir -p /usr/local/bin");
-      await exec.exec(`sudo tee /usr/local/bin/cortex > /dev/null << 'EOF'
-#!/bin/bash
+      const wrapperScript = `#!/bin/bash
 source /tmp/cortex/venv/bin/activate
 cd /tmp/cortex
-python -m cortex.cli "$@"
-EOF`);
+python -m cortex.cli "$@"`;
+      
+      await exec.exec(`sudo bash -c 'echo "${wrapperScript}" > /usr/local/bin/cortex'`);
       await exec.exec("sudo chmod +x /usr/local/bin/cortex");
       
       core.info("Cortex installation completed.");
