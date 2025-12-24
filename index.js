@@ -32,12 +32,24 @@ async function run() {
           [apiKeyEnvName]: apiKey
         },
         listeners: {
-          stdout: (data) => (stdout += data.toString()),
-          stderr: (data) => (stderr += data.toString())
+          stdout: (data) => {
+            const output = data.toString();
+            stdout += output;
+            core.info(output.trim());
+          },
+          stderr: (data) => {
+            const output = data.toString();
+            stderr += output;
+            core.error(output.trim());
+          }
         }
       });
 
       executionLog = stdout || stderr;
+      
+      if (executionLog) {
+        core.info(`Command completed. Full output: ${executionLog.trim()}`);
+      }
     }
 
     core.setOutput("execution-log", executionLog);

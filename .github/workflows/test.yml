@@ -21,7 +21,20 @@ jobs:
           api-key: "${{ secrets.API_KEY }}"
           llm_provider: "anthropic"
 
+      - name: Run Cortex Action (Execution)
+        id: cortex_exec
+        uses: ./
+        with:
+          command: "install \"python3, nodejs, and postgresql\""
+          api-key: "${{ secrets.API_KEY }}"
+          llm_provider: "anthropic"
+
       - name: Print outputs
         run: |
           echo "Status: ${{ steps.cortex.outputs.status }}"
           echo "Log: ${{ steps.cortex.outputs.execution-log }}"
+
+      - name: Print execution outputs
+        run: |
+          echo "Status: ${{ steps.cortex_exec.outputs.status }}"
+          echo "Log: ${{ steps.cortex_exec.outputs.execution-log }}"
