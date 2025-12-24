@@ -30,27 +30,26 @@ async function run() {
     if (!cortexInstalled) {
       // Clone Cortex repository
       core.info("Cloning Cortex repository...");
-      await exec.exec("git clone https://github.com/cortexlinux/cortex.git /tmp/cortex");
+      await exec.exec("git", ["clone", "https://github.com/cortexlinux/cortex.git", "/tmp/cortex"]);
       
       // Create virtual environment and install
       core.info("Installing Cortex...");
-      await exec.exec("python3 -m venv /tmp/cortex/venv");
+      await exec.exec("python3", ["-m", "venv", "/tmp/cortex/venv"]);
       
       // Activate virtual environment and install Cortex
-      await exec.exec("/tmp/cortex/venv/bin/pip install -e /tmp/cortex");
+      await exec.exec("/tmp/cortex/venv/bin/pip", ["install", "-e", "/tmp/cortex"]);
       
       // Make cortex available in PATH by creating a wrapper script
-      await exec.exec("sudo mkdir -p /usr/local/bin");
+      await exec.exec("sudo", ["mkdir", "-p", "/usr/local/bin"]);
       
-      // Create wrapper script using tee with proper escaping
-      await exec.exec("sudo tee /usr/local/bin/cortex", [], {
-        input: `#!/bin/bash
-source /tmp/cortex/venv/bin/activate
-cd /tmp/cortex
-python -m cortex.cli "$@"
-`
-      });
-      await exec.exec("sudo chmod +x /usr/local/bin/cortex");
+      // Create wrapper script content
+      const scriptContent = "#!/bin/bash\nsource /tmp/cortex/venv/bin/activate\ncd /tmp/cortex\npython -m cortex.cli \"$@\"\n";
+      
+      // Write the script using echo
+      await exec.exec("sudo", ["sh", "-c", `echo '${scriptContent}' > /usr/local/bin/cortex`]);
+      
+      // Make it executable
+      await exec.exec("sudo", ["chmod", "+x", "/usr/local/bin/cortex"]);
       
       core.info("Cortex installation completed.");
     }
