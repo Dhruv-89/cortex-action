@@ -41,12 +41,15 @@ async function run() {
       
       // Make cortex available in PATH by creating a wrapper script
       await exec.exec("sudo mkdir -p /usr/local/bin");
-      const wrapperScript = `#!/bin/bash
+      
+      // Create wrapper script using tee with proper escaping
+      await exec.exec("sudo tee /usr/local/bin/cortex", [], {
+        input: `#!/bin/bash
 source /tmp/cortex/venv/bin/activate
 cd /tmp/cortex
-python -m cortex.cli "$@"`;
-      
-      await exec.exec(`sudo bash -c 'echo "${wrapperScript}" > /usr/local/bin/cortex'`);
+python -m cortex.cli "$@"
+`
+      });
       await exec.exec("sudo chmod +x /usr/local/bin/cortex");
       
       core.info("Cortex installation completed.");
